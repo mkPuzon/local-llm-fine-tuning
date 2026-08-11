@@ -12,5 +12,6 @@ dependencies = [
     "ipykernel",
     "jupyter",
     "matplotlib>=3.11.1",
+    "dotenv>=0.9.9",
 ]
 
