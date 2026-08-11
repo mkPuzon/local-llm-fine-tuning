@@ -1,0 +1,19 @@
+# Data, models, and test results
+data/
+test_results/
+adapters
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Pipeline outputs (model weights, predictions)
+outputs/
+results/
