@@ -11,6 +11,11 @@ dist/
 wheels/
 *.egg-info
 
+# Unsloth files
+unsloth_compiled_cache/
+checkpoints
+outputs_qwen35/
+
 # Environment secrets
 .env
 

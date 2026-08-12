@@ -13,5 +13,12 @@ dependencies = [
     "jupyter",
     "matplotlib>=3.11.1",
     "dotenv>=0.9.9",
+    "seaborn>=0.13.2",
 ]
 
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
