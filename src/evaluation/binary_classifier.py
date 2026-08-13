@@ -1,5 +1,6 @@
 import re
 import os
+import json
 import torch
 
 from dotenv import load_dotenv
@@ -22,17 +23,15 @@ def extract_label(generated_text):
     match = re.match(r"-?\d+", text)
     return match.group(0) if match else None
 
-def evaluate_model(model, tokenizer, dataset, batch_size=16):
+def evaluate_model(model, tokenizer, dataset, model_str, batch_size=16, verbose=True):
     '''Evaluates the accuracy of a classification model.'''
     formatted_data = dataset.map(
         formatting_func,
         remove_columns=dataset.column_names
         )
-
     if tokenizer.tokenizer.pad_token is None:
         tokenizer.tokenizer.pad_token = tokenizer.tokenizer.eos_token
     tokenizer.tokenizer.padding_side = "left"
-
     predictions = []
     prompts = formatted_data["prompt"]
     for i in range(0, len(prompts), batch_size):
@@ -50,8 +49,42 @@ def evaluate_model(model, tokenizer, dataset, batch_size=16):
             out[:, input_len:], skip_special_tokens=True
         )
         predictions.extend(extract_label(g) for g in generated_batch)
-    
-    true_labels = formatted_data["completion"]
-    correct = sum(p == t for p, t in zip(predictions, true_labels))
 
-    print(f"Accuracy: {correct}/{len(true_labels)} = {correct/len(true_labels):.4f}")
+    true_labels = formatted_data["completion"]
+
+    malformed = sum(p is None for p in predictions)
+    correct = sum(p == t for p, t in zip(predictions, true_labels))
+    accuracy = correct / len(true_labels)
+
+    POSITIVE = "1"  # not-valid-for-archival-search — confirm this matches your intent
+    tp = sum(p == POSITIVE and t == POSITIVE for p, t in zip(predictions, true_labels))
+    fp = sum(p == POSITIVE and t != POSITIVE for p, t in zip(predictions, true_labels))
+    tn = sum(p != POSITIVE and t != POSITIVE for p, t in zip(predictions, true_labels))
+    fn = sum(p != POSITIVE and t == POSITIVE for p, t in zip(predictions, true_labels))
+
+    tpr = tp / (tp + fn) if (tp + fn) else 0.0
+    fpr = fp / (fp + tn) if (fp + tn) else 0.0
+    precision = tp / (tp + fp) if (tp + fp) else 0.0
+
+    if verbose:
+        print(f"Accuracy: {correct}/{len(true_labels)} = {accuracy:.4f}")
+        print(f"TPR (recall): {tpr:.4f}")
+        print(f"FPR: {fpr:.4f}")
+        print(f"Precision: {precision:.4f}")
+        if malformed:
+            print(f"Warning: {malformed} generations did not parse to a label")
+
+    os.makedirs("../results", exist_ok=True)
+    with open(f"../results/{model_str}.json", 'w') as f_out:
+        json.dump(
+            {
+                "model": model_str,
+                "accuracy": accuracy,
+                "tpr": tpr,
+                "fpr": fpr,
+                "precision": precision,
+                "malformed_predictions": malformed,
+            },
+            f_out,
+            indent=2,
+        )
