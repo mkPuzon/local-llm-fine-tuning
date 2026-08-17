@@ -5,4 +5,5 @@ from .binary_classifier import (
 
 from .plots import (
     plot_loss,
+    plot_model_metrics,
 )

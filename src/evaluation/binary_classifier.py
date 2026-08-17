@@ -56,7 +56,7 @@ def evaluate_model(model, tokenizer, dataset, model_str, batch_size=16, verbose=
     correct = sum(p == t for p, t in zip(predictions, true_labels))
     accuracy = correct / len(true_labels)
 
-    POSITIVE = "1"  # not-valid-for-archival-search — confirm this matches your intent
+    POSITIVE = "1"  # not-valid-for-archival-search
     tp = sum(p == POSITIVE and t == POSITIVE for p, t in zip(predictions, true_labels))
     fp = sum(p == POSITIVE and t != POSITIVE for p, t in zip(predictions, true_labels))
     tn = sum(p != POSITIVE and t != POSITIVE for p, t in zip(predictions, true_labels))
