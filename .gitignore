@@ -24,4 +24,5 @@ outputs_qwen35/
 
 # Pipeline outputs (model weights, predictions)
 outputs/
-results/
+results/*
+!results/plots
